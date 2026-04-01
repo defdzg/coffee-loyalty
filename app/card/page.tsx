@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { io, Socket } from 'socket.io-client'
+import Header from '@/app/components/Header'
+import StampDisplay from '@/app/components/StampDisplay'
+import QRModal from '@/app/components/QRModal'
+import PrimaryButton from '@/app/components/PrimaryButton'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 interface LoyaltyCard {
   id: string
@@ -30,6 +35,7 @@ export default function CardPage() {
   const [loading, setLoading] = useState(true)
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isDevMode, setIsDevMode] = useState(false)
+  const [isQROpen, setIsQROpen] = useState(false)
 
   useEffect(() => {
     // Check for dev session first
@@ -172,122 +178,49 @@ export default function CardPage() {
   }
 
   if (loading || !userData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
-        <div className="text-center">
-          <div className="text-6xl mb-4">☕</div>
-          <div className="text-2xl font-semibold text-gray-800">Loading your card...</div>
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   const { loyaltyCard } = userData
-  const progress = (loyaltyCard.stamps / loyaltyCard.rewardThreshold) * 100
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 p-4">
-      <div className="max-w-md mx-auto py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Welcome, {userData.user.name || 'Coffee Lover'}!
-            </h1>
-            <p className="text-gray-600 text-sm">{userData.user.email}</p>
-            {isDevMode && (
-              <p className="text-xs text-purple-600 font-semibold mt-1">
-                🔧 Dev Mode
-              </p>
-            )}
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="text-sm text-gray-600 hover:text-gray-800"
-          >
-            Sign Out
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-white overflow-hidden flex flex-col">
+      {/* Header */}
+      <Header
+        userName={userData.user.name}
+        isDevMode={isDevMode}
+        onSignOut={handleSignOut}
+      />
 
-        {/* Loyalty Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <div className="text-center mb-6">
-            <div className="text-6xl mb-2">☕</div>
-            <h2 className="text-xl font-bold text-gray-800 mb-1">
-              Loyalty Card
-            </h2>
-            <p className="text-gray-600 text-sm">
-              {loyaltyCard.stamps} / {loyaltyCard.rewardThreshold} stamps
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-amber-400 to-orange-500 h-4 transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Stamps Grid */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {Array.from({ length: loyaltyCard.rewardThreshold }).map((_, i) => (
-              <div
-                key={i}
-                className={`aspect-square rounded-xl flex items-center justify-center text-3xl transition-all ${
-                  i < loyaltyCard.stamps
-                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md scale-105'
-                    : 'bg-gray-100 text-gray-300'
-                }`}
-              >
-                ☕
-              </div>
-            ))}
-          </div>
-
-          {/* Reward Status */}
-          {loyaltyCard.rewardAvailable ? (
-            <div className="bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-xl p-4 text-center">
-              <div className="text-2xl mb-1">🎉</div>
-              <h3 className="font-bold text-lg">Free Coffee Ready!</h3>
-              <p className="text-sm opacity-90">
-                Show this to staff to redeem
-              </p>
-            </div>
-          ) : (
-            <div className="bg-gray-100 rounded-xl p-4 text-center">
-              <p className="text-gray-600 text-sm">
-                {loyaltyCard.rewardThreshold - loyaltyCard.stamps} more{' '}
-                {loyaltyCard.rewardThreshold - loyaltyCard.stamps === 1
-                  ? 'stamp'
-                  : 'stamps'}{' '}
-                until your free coffee!
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* QR Code */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
-          <h3 className="font-bold text-lg text-gray-800 mb-4">
-            Your QR Code
-          </h3>
-          <p className="text-gray-600 text-sm mb-4">
-            Show this to staff to collect stamps or redeem rewards
-          </p>
-          {qrCode && (
-            <div className="flex justify-center">
-              <img
-                src={qrCode}
-                alt="QR Code"
-                className="rounded-lg shadow-md"
-              />
-            </div>
-          )}
+      {/* Main Content - Fullscreen centered */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <StampDisplay
+            current={loyaltyCard.stamps}
+            total={loyaltyCard.rewardThreshold}
+            hasReward={loyaltyCard.rewardAvailable}
+          />
         </div>
       </div>
+
+      {/* Bottom Action Button */}
+      <div className="px-6 py-8 border-t border-gray-100">
+        <PrimaryButton onClick={() => setIsQROpen(true)}>
+          Show Code
+        </PrimaryButton>
+        {isDevMode && (
+          <p className="text-xs text-center text-gray-400 mt-3">
+            Tap to show QR code for scanning
+          </p>
+        )}
+      </div>
+
+      {/* QR Modal */}
+      <QRModal
+        isOpen={isQROpen}
+        qrCode={qrCode}
+        onClose={() => setIsQROpen(false)}
+      />
     </div>
   )
 }
