@@ -62,26 +62,28 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+        className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         style={{ opacity: isOpen ? 1 : 0 }}
       />
 
       {/* Modal Content */}
       <div
         ref={contentRef}
-        className={`relative bg-white rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 max-w-sm w-full sm:w-auto transition-all duration-300 transform-gpu ${
+        className={`relative bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 max-w-sm w-full sm:w-auto transition-all duration-300 transform-gpu ${
           isOpen
             ? 'translate-y-0 opacity-100'
             : 'translate-y-full sm:translate-y-0 opacity-0'
         }`}
         style={{
-          boxShadow: isOpen ? '0 -4px 32px rgba(0, 0, 0, 0.1)' : 'none',
+          boxShadow: isOpen
+            ? '0 -4px 32px rgba(0, 0, 0, 0.1), 0 0 30px rgba(0, 217, 255, 0.1)'
+            : 'none',
         }}
       >
         {/* Close button (desktop only) */}
         <button
           onClick={onClose}
-          className="hidden sm:block absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="hidden sm:block absolute top-4 right-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
           aria-label="Close modal"
         >
           <svg
@@ -101,13 +103,13 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
 
         {/* Drag indicator (mobile only) */}
         <div className="sm:hidden flex justify-center mb-4">
-          <div className="w-12 h-1 bg-gray-300 rounded-full" />
+          <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
         </div>
 
         {/* Content */}
         <div className="flex flex-col items-center">
-          {/* QR Code */}
-          <div className="mb-6 p-4 bg-white rounded-xl border border-gray-100">
+          {/* QR Code with glow */}
+          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 dark:glow-cyan-sm">
             {qrCode && (
               <img
                 src={qrCode}
@@ -118,14 +120,14 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
           </div>
 
           {/* Label */}
-          <p className="text-sm text-gray-500 text-center mb-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
             Show this code to staff to collect stamps or redeem rewards
           </p>
 
           {/* Close button (mobile) */}
           <button
             onClick={onClose}
-            className="sm:hidden w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors"
+            className="sm:hidden w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 font-medium rounded-lg transition-colors"
           >
             Done
           </button>

@@ -27,6 +27,8 @@ interface UserData {
   loyaltyCard: LoyaltyCard
 }
 
+import { useTheme } from '@/app/context/ThemeContext'
+
 export default function CardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -184,7 +186,8 @@ export default function CardPage() {
   const { loyaltyCard } = userData
 
   return (
-    <div className="fixed inset-0 bg-white overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-white dark:bg-gray-950 overflow-hidden flex flex-col"
+    >
       {/* Header */}
       <Header
         userName={userData.user.name}
@@ -204,12 +207,12 @@ export default function CardPage() {
       </div>
 
       {/* Bottom Action Button */}
-      <div className="px-6 py-8 border-t border-gray-100">
+      <div className="px-6 py-8 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <PrimaryButton onClick={() => setIsQROpen(true)}>
           Show Code
         </PrimaryButton>
         {isDevMode && (
-          <p className="text-xs text-center text-gray-400 mt-3">
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500 mt-3">
             Tap to show QR code for scanning
           </p>
         )}
