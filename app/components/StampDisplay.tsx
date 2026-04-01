@@ -13,98 +13,83 @@ export default function StampDisplay({
   total,
   hasReward,
 }: StampDisplayProps) {
-  const [displayCurrent, setDisplayCurrent] = useState(current)
   const [animate, setAnimate] = useState(false)
 
   useEffect(() => {
-    if (displayCurrent !== current) {
-      setAnimate(true)
-      const timer = setTimeout(() => {
-        setDisplayCurrent(current)
-        setAnimate(false)
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [current, displayCurrent])
+    setAnimate(true)
+    const timer = setTimeout(() => setAnimate(false), 500)
+    return () => clearTimeout(timer)
+  }, [current])
 
-  const percentage = (current / total) * 100
-  const circumference = 2 * Math.PI * 90
+  const gridSize = 3
+  const stamps = Array.from({ length: total }).map((_, i) => ({
+    id: i,
+    isFilled: i < current,
+    date: '05/05', // Could be dynamic based on actual stamp dates
+  }))
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1">
+    <div className="flex flex-col items-center justify-center flex-1 space-y-8">
+      {/* Title Section */}
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl font-bold text-amber-950 dark:text-amber-100">
+          Balance Blend
+        </h2>
+        <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 tracking-wide">
+          BUY {total} COFFEES AND GET ONE FREE
+        </p>
+      </div>
+
       {/* Reward Badge */}
       {hasReward && (
-        <div className="mb-12 animate-bounce">
-          <div className="bg-gradient-to-r from-cyan-400 to-blue-400 dark:from-cyan-500 dark:to-cyan-400 text-white rounded-full px-6 py-2 text-sm font-semibold shadow-lg">
-            🎉 Reward Ready!
+        <div className="animate-bounce">
+          <div className="bg-gradient-to-r from-rose-500 to-pink-500 dark:from-rose-600 dark:to-pink-600 text-white rounded-full px-6 py-2 text-sm font-semibold shadow-lg">
+            🎉 FREE COFFEE!
           </div>
         </div>
       )}
 
-      {/* Main Circular Progress Display */}
-      <div className="relative mb-12 w-80 h-80 flex items-center justify-center">
-        {/* Outer glow circle (dark mode only) */}
-        <div className="absolute inset-0 rounded-full opacity-0 dark:opacity-100 dark:glow-cyan" />
-
-        {/* SVG Circular Progress */}
-        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 200 200">
-          {/* Background circle */}
-          <circle
-            cx="100"
-            cy="100"
-            r="90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="8"
-            className="text-gray-200 dark:text-gray-700"
-          />
-
-          {/* Progress circle */}
-          <circle
-            cx="100"
-            cy="100"
-            r="90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="8"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference - (circumference * percentage) / 100}
-            strokeLinecap="round"
-            className={`transition-all duration-500 ${
-              hasReward
-                ? 'text-green-500 dark:text-emerald-400'
-                : 'text-cyan-500 dark:text-cyan-400'
-            }`}
-          />
-        </svg>
-
-        {/* Center content */}
-        <div className="text-center z-10">
+      {/* Stamp Grid */}
+      <div
+        className="grid gap-6 p-8 bg-white dark:bg-gray-900 rounded-3xl border-2 border-amber-100 dark:border-amber-900 shadow-xl"
+        style={{
+          gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
+          maxWidth: '400px',
+        }}
+      >
+        {stamps.map((stamp) => (
           <div
-            className={`text-6xl font-black transition-transform duration-300 ${
-              animate ? 'scale-110' : 'scale-100'
-            } ${
-              hasReward
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-cyan-600 dark:text-cyan-400'
-            }`}
+            key={stamp.id}
+            className="flex flex-col items-center gap-2"
           >
-            {displayCurrent}
+            {/* Stamp Circle */}
+            <div
+              className={`w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl transition-all duration-300 transform shadow-md ${
+                stamp.isFilled
+                  ? 'bg-gradient-to-br from-rose-400 to-pink-500 dark:from-rose-500 dark:to-pink-600 text-white scale-110'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 border-2 border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              ☕
+            </div>
+            {/* Date Label */}
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+              {stamp.date}
+            </span>
           </div>
-          <div className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-light">
-            of {total} stamps
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Status text */}
-      <div className="text-sm font-medium text-gray-600 dark:text-cyan-300">
-        {Math.round(percentage)}% to free coffee
-      </div>
-
-      {/* Additional info */}
-      <div className="mt-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-        {total - current} stamps remaining
+      {/* Progress Counter */}
+      <div className="text-center space-y-1">
+        <p className="text-5xl font-black text-amber-600 dark:text-amber-400">
+          {current}/{total}
+        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+          {current === total
+            ? 'Ready for your free coffee!'
+            : `${total - current} more to claim your reward`}
+        </p>
       </div>
     </div>
   )

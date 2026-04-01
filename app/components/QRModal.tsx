@@ -76,7 +76,7 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
         }`}
         style={{
           boxShadow: isOpen
-            ? '0 -4px 32px rgba(0, 0, 0, 0.1), 0 0 30px rgba(0, 217, 255, 0.1)'
+            ? '0 -4px 32px rgba(0, 0, 0, 0.1), 0 0 30px rgba(244, 114, 182, 0.1)'
             : 'none',
         }}
       >
@@ -109,7 +109,7 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
         {/* Content */}
         <div className="flex flex-col items-center">
           {/* QR Code with glow */}
-          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 dark:glow-cyan-sm">
+          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-amber-100 dark:border-amber-900">
             {qrCode && (
               <img
                 src={qrCode}
@@ -127,7 +127,7 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
           {/* Close button (mobile) */}
           <button
             onClick={onClose}
-            className="sm:hidden w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 font-medium rounded-lg transition-colors"
+            className="sm:hidden w-full px-4 py-3 bg-amber-100 dark:bg-gray-800 hover:bg-amber-200 dark:hover:bg-gray-700 text-amber-900 dark:text-gray-100 font-medium rounded-lg transition-colors"
           >
             Done
           </button>

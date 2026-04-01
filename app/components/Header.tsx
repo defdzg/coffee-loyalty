@@ -12,19 +12,19 @@ export default function Header({ userName, isDevMode, onSignOut }: HeaderProps) 
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+    <div className="flex items-center justify-between px-6 py-4 border-b border-amber-100 dark:border-amber-900 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-gray-900 dark:to-gray-900">
       {/* Left: Coffee icon or logo */}
       <div className="flex items-center gap-2">
         <span className="text-2xl">☕</span>
-        <span className="text-xs font-medium text-gray-600 dark:text-cyan-400">
-          Coffee Loyalty
+        <span className="text-xs font-bold text-amber-900 dark:text-amber-200 tracking-widest">
+          BALANCE BLEND
         </span>
       </div>
 
       {/* Right: Controls */}
       <div className="flex items-center gap-3">
         {isDevMode && (
-          <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full">
+          <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full font-semibold">
             🔧 Dev
           </span>
         )}
@@ -32,7 +32,7 @@ export default function Header({ userName, isDevMode, onSignOut }: HeaderProps) 
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-gray-800 transition-colors"
           aria-label="Toggle theme"
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
@@ -46,7 +46,7 @@ export default function Header({ userName, isDevMode, onSignOut }: HeaderProps) 
             </svg>
           ) : (
             <svg
-              className="w-5 h-5 text-gray-700"
+              className="w-5 h-5 text-amber-700"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -58,7 +58,7 @@ export default function Header({ userName, isDevMode, onSignOut }: HeaderProps) 
         {/* Sign out */}
         <button
           onClick={onSignOut}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-gray-800 text-amber-700 dark:text-gray-400 hover:text-amber-900 dark:hover:text-gray-200 transition-colors"
           aria-label="Sign out"
         >
           <svg
