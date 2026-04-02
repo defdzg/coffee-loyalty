@@ -10,17 +10,16 @@ interface QRModalProps {
 
 export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isOpen) return
 
-    // Handle escape key
+    const modalElement = modalRef.current
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
 
-    // Handle swipe down
     let touchStartY = 0
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY
@@ -33,9 +32,8 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
       }
     }
 
-    // Handle click outside
     const handleBackdropClick = (e: MouseEvent) => {
-      if (e.target === modalRef.current) {
+      if (e.target === modalElement) {
         onClose()
       }
     }
@@ -43,13 +41,13 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('touchstart', handleTouchStart)
     document.addEventListener('touchend', handleTouchEnd)
-    modalRef.current?.addEventListener('click', handleBackdropClick)
+    modalElement?.addEventListener('click', handleBackdropClick)
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchend', handleTouchEnd)
-      modalRef.current?.removeEventListener('click', handleBackdropClick)
+      modalElement?.removeEventListener('click', handleBackdropClick)
     }
   }, [isOpen, onClose])
 
@@ -58,78 +56,54 @@ export default function QRModal({ isOpen, qrCode, onClose }: QRModalProps) {
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        className="absolute inset-0 bg-black/80 transition-opacity duration-200 ease-out"
         style={{ opacity: isOpen ? 1 : 0 }}
       />
 
-      {/* Modal Content */}
       <div
-        ref={contentRef}
-        className={`relative bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 max-w-sm w-full sm:w-auto transition-all duration-300 transform-gpu ${
+        className={`relative surface-panel rounded-[16px] p-5 sm:p-6 max-w-sm w-full transition-all duration-200 ease-out ${
           isOpen
             ? 'translate-y-0 opacity-100'
-            : 'translate-y-full sm:translate-y-0 opacity-0'
+            : 'translate-y-2 opacity-0'
         }`}
         style={{
-          boxShadow: isOpen
-            ? '0 -4px 32px rgba(0, 0, 0, 0.1), 0 0 30px rgba(244, 114, 182, 0.1)'
-            : 'none',
+          maxWidth: '480px',
         }}
       >
-        {/* Close button (desktop only) */}
         <button
           onClick={onClose}
-          className="hidden sm:block absolute top-4 right-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+          className="mono-label absolute right-4 top-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           aria-label="Close modal"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          [ X ]
         </button>
 
-        {/* Drag indicator (mobile only) */}
-        <div className="sm:hidden flex justify-center mb-4">
-          <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
-        </div>
+        <div className="flex flex-col items-center gap-5 pt-7">
+          <div className="text-center">
+            <div className="mono-label text-[var(--text-secondary)]">SCAN CODE</div>
+            <div className="mt-2 text-sm text-[var(--text-secondary)]">
+              Scan at checkout
+            </div>
+          </div>
 
-        {/* Content */}
-        <div className="flex flex-col items-center">
-          {/* QR Code with glow */}
-          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-amber-100 dark:border-amber-900">
+          <div className="surface-panel-soft rounded-[16px] p-4">
             {qrCode && (
               <img
                 src={qrCode}
                 alt="QR Code for loyalty card"
-                className="w-64 h-64 sm:w-72 sm:h-72"
+                className="h-64 w-64 sm:h-72 sm:w-72"
               />
             )}
           </div>
 
-          {/* Label */}
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-            Show this code to staff to collect stamps or redeem rewards
-          </p>
-
-          {/* Close button (mobile) */}
           <button
             onClick={onClose}
-            className="sm:hidden w-full px-4 py-3 bg-amber-100 dark:bg-gray-800 hover:bg-amber-200 dark:hover:bg-gray-700 text-amber-900 dark:text-gray-100 font-medium rounded-lg transition-colors"
+            className="mono-label rounded-full border border-[var(--border-visible)] px-4 py-3 text-[var(--text-primary)]"
           >
-            Done
+            CLOSE
           </button>
         </div>
       </div>

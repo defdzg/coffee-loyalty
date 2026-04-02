@@ -17,19 +17,21 @@ export default function PrimaryButton({
     <button
       onClick={onClick}
       className={`
-        w-full px-6 py-4 rounded-xl font-bold text-base
-        transition-all duration-200 transform-gpu
-        active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2
+        w-full min-h-11 rounded-full px-6 py-3
+        font-mono-ui text-[13px] font-bold uppercase tracking-[0.08em]
+        transition-colors duration-200 ease-out
+        focus:outline-none focus:ring-2 focus:ring-[var(--border-visible)] focus:ring-offset-2 focus:ring-offset-[var(--black)]
+        active:opacity-80
         flex items-center justify-center gap-2
         ${
           variant === 'primary'
-            ? 'bg-gradient-to-r from-rose-500 to-pink-600 dark:from-rose-600 dark:to-pink-700 text-white hover:shadow-lg dark:hover:shadow-rose-900/50 focus:ring-rose-400 dark:focus:ring-rose-500'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 focus:ring-gray-300 dark:focus:ring-gray-600'
+            ? 'bg-[var(--text-display)] text-[var(--black)] border border-[var(--text-display)]'
+            : 'bg-transparent text-[var(--text-primary)] border border-[var(--border-visible)]'
         }
       `}
     >
-      {children}
-      {icon && icon}
+      <span>{children}</span>
+      {icon && <span className="shrink-0">{icon}</span>}
     </button>
   )
 }

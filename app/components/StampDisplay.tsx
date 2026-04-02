@@ -13,84 +13,79 @@ export default function StampDisplay({
   total,
   hasReward,
 }: StampDisplayProps) {
-  const [animate, setAnimate] = useState(false)
+  const [animating, setAnimating] = useState(false)
 
   useEffect(() => {
-    setAnimate(true)
-    const timer = setTimeout(() => setAnimate(false), 500)
-    return () => clearTimeout(timer)
+    const frame = window.requestAnimationFrame(() => {
+      setAnimating(true)
+    })
+    const timer = window.setTimeout(() => {
+      setAnimating(false)
+    }, 180)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(timer)
+    }
   }, [current])
 
-  const gridSize = 3
-  const stamps = Array.from({ length: total }).map((_, i) => ({
-    id: i,
-    isFilled: i < current,
-    date: '05/05', // Could be dynamic based on actual stamp dates
-  }))
+  const filledCount = Math.max(0, Math.min(total, current))
+  const remainingCount = Math.max(0, total - current)
+  const statusLabel = hasReward ? 'REDEEM READY' : `${remainingCount} REMAINING`
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 space-y-8">
-      {/* Title Section */}
-      <div className="text-center space-y-3">
-        <h2 className="text-3xl font-bold text-amber-950 dark:text-amber-100">
-          Balance Blend
-        </h2>
-        <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 tracking-wide">
-          BUY {total} COFFEES AND GET ONE FREE
-        </p>
-      </div>
-
-      {/* Reward Badge */}
+    <section className="flex w-full flex-col items-center justify-center gap-8">
       {hasReward && (
-        <div className="animate-bounce">
-          <div className="bg-gradient-to-r from-rose-500 to-pink-500 dark:from-rose-600 dark:to-pink-600 text-white rounded-full px-6 py-2 text-sm font-semibold shadow-lg">
-            🎉 FREE COFFEE!
-          </div>
+        <div className="mono-label rounded-full border border-[var(--success)] px-4 py-2 text-[var(--success)]">
+          REWARD READY
         </div>
       )}
 
-      {/* Stamp Grid */}
-      <div
-        className="grid gap-6 p-8 bg-white dark:bg-gray-900 rounded-3xl border-2 border-amber-100 dark:border-amber-900 shadow-xl"
-        style={{
-          gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
-          maxWidth: '400px',
-        }}
-      >
-        {stamps.map((stamp) => (
-          <div
-            key={stamp.id}
-            className="flex flex-col items-center gap-2"
-          >
-            {/* Stamp Circle */}
-            <div
-              className={`w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl transition-all duration-300 transform shadow-md ${
-                stamp.isFilled
-                  ? 'bg-gradient-to-br from-rose-400 to-pink-500 dark:from-rose-500 dark:to-pink-600 text-white scale-110'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 border-2 border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              ☕
-            </div>
-            {/* Date Label */}
-            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-              {stamp.date}
-            </span>
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <div className="mono-label mb-4">BALANCE BLEND</div>
+          <div className={`mono-display text-[clamp(72px,18vw,96px)] leading-none tracking-[-0.05em] transition-opacity duration-200 ease-out ${animating ? 'opacity-70' : 'opacity-100'}`}>
+            {current}
+            <span className="align-top text-[0.32em] text-[var(--text-secondary)]"> / {total}</span>
           </div>
-        ))}
-      </div>
+          <div className="mono-label mt-4 text-[var(--text-secondary)]">
+            BUY {total} COFFEES, GET ONE FREE
+          </div>
+        </div>
 
-      {/* Progress Counter */}
-      <div className="text-center space-y-1">
-        <p className="text-5xl font-black text-amber-600 dark:text-amber-400">
-          {current}/{total}
-        </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-          {current === total
-            ? 'Ready for your free coffee!'
-            : `${total - current} more to claim your reward`}
-        </p>
+        <div className="surface-panel rounded-[16px] p-4">
+          <div className="mono-label mb-3 flex items-center justify-between">
+            <span>PROGRESS</span>
+            <span>{current}/{total}</span>
+          </div>
+          <div className="segmented-progress">
+            {Array.from({ length: total }).map((_, index) => (
+              <div
+                key={index}
+                className={`segmented-progress__segment ${index < filledCount ? (hasReward ? 'is-success' : 'is-filled') : ''}`}
+                style={{ opacity: index < filledCount ? 1 : 0.35 }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="surface-panel-soft rounded-[16px] p-3 text-center">
+            <div className="mono-label">STATUS</div>
+            <div className={`mono-value mt-2 text-sm ${hasReward ? 'text-[var(--success)]' : 'text-[var(--text-primary)]'}`}>
+              {statusLabel}
+            </div>
+          </div>
+          <div className="surface-panel-soft rounded-[16px] p-3 text-center">
+            <div className="mono-label">REMAIN</div>
+            <div className="mono-value mt-2 text-sm">{remainingCount}</div>
+          </div>
+          <div className="surface-panel-soft rounded-[16px] p-3 text-center">
+            <div className="mono-label">UNIT</div>
+            <div className="mono-value mt-2 text-sm">COFFEE</div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

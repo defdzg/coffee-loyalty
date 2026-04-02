@@ -2,16 +2,20 @@
 
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { FaGoogle, FaApple } from 'react-icons/fa'
 import { useState } from 'react'
+import PrimaryButton from '@/app/components/PrimaryButton'
+import { useTheme } from '@/app/context/ThemeContext'
 
 export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [statusMessage, setStatusMessage] = useState<string>('')
+  const { theme, toggleTheme } = useTheme()
   const isDev = process.env.NODE_ENV === 'development'
 
   const handleDevLogin = async () => {
     setLoading(true)
+    setStatusMessage('')
     try {
       const response = await fetch('/api/dev-login', {
         method: 'POST',
@@ -28,80 +32,75 @@ export default function LoginPage() {
         // Redirect to card page
         router.push('/card')
       } else {
-        alert('Dev login failed')
+        setStatusMessage('[ ERROR ] Dev login failed')
       }
     } catch (error) {
       console.error('Dev login error:', error)
-      alert('Dev login error - check console')
+      setStatusMessage('[ ERROR ] Dev login error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
-      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">☕</div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Coffee Loyalty
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--black)] px-6">
+      <div className="absolute inset-0 dot-grid-subtle opacity-40" />
+
+      <button
+        onClick={toggleTheme}
+        className="mono-label absolute right-6 top-6 rounded-full border border-[var(--border-visible)] px-3 py-2 text-[var(--text-primary)]"
+        aria-label="Toggle theme"
+      >
+        {theme === 'dark' ? 'LIGHT' : 'DARK'}
+      </button>
+
+      <div className="relative w-full max-w-md surface-panel rounded-[16px] p-6 sm:p-8">
+        <div className="space-y-3 text-center">
+          <div className="mono-label">Coffee Loyalty</div>
+          <h1 className="font-display text-[clamp(48px,12vw,72px)] leading-none text-[var(--text-display)]">
+            STAMPS
           </h1>
-          <p className="text-gray-600">
-            Sign in to access your loyalty card
+          <p className="mono-label text-[var(--text-secondary)]">
+            Sign in to open your card
           </p>
         </div>
 
-        <div className="space-y-4">
-          {/* Dev Login Button - Only in development */}
+        <div className="mt-8 space-y-3">
           {isDev && (
-            <>
-              <button
-                onClick={handleDevLogin}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-colors disabled:opacity-50"
-              >
-                {loading ? '⏳ Loading...' : '🚀 Dev Login (Skip OAuth)'}
-              </button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or use OAuth</span>
-                </div>
-              </div>
-            </>
+            <PrimaryButton onClick={handleDevLogin} variant="secondary">
+              {loading ? 'LOADING' : 'DEV LOGIN'}
+            </PrimaryButton>
           )}
 
-          <button
-            onClick={() => signIn('google', { callbackUrl: '/card' })}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-          >
-            <FaGoogle className="text-xl" />
-            Sign in with Google
-          </button>
+          <PrimaryButton onClick={() => signIn('google', { callbackUrl: '/card' })}>
+            SIGN IN WITH GOOGLE
+          </PrimaryButton>
 
-          <button
-            onClick={() => signIn('apple', { callbackUrl: '/card' })}
-            className="w-full flex items-center justify-center gap-3 bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors"
-          >
-            <FaApple className="text-xl" />
-            Sign in with Apple
-          </button>
+          <PrimaryButton onClick={() => signIn('apple', { callbackUrl: '/card' })} variant="secondary">
+            SIGN IN WITH APPLE
+          </PrimaryButton>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          By signing in, you agree to our Terms of Service
-        </p>
-
-        {isDev && (
-          <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-            <p className="text-xs text-purple-700 text-center">
-              🔧 <strong>Dev Mode:</strong> Use "Dev Login" to test without database/OAuth
-            </p>
-          </div>
-        )}
+        <div className="mt-6 space-y-3">
+          <p className="mono-label text-center text-[var(--text-disabled)]">
+            By signing in, you agree to the terms.
+          </p>
+          {isDev && (
+            <div className="surface-panel-soft rounded-[16px] px-4 py-3 text-center">
+              <p className="mono-label text-[var(--text-secondary)]">
+                DEV MODE ENABLED
+              </p>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                Use dev login to test without OAuth.
+              </p>
+            </div>
+          )}
+          {statusMessage && (
+            <div className="surface-panel-soft rounded-[16px] px-4 py-3 text-center">
+              <p className="mono-label text-[var(--accent)]">{statusMessage}</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

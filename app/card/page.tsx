@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { io, Socket } from 'socket.io-client'
+import { io } from 'socket.io-client'
 import Header from '@/app/components/Header'
 import StampDisplay from '@/app/components/StampDisplay'
 import QRModal from '@/app/components/QRModal'
@@ -27,15 +27,12 @@ interface UserData {
   loyaltyCard: LoyaltyCard
 }
 
-import { useTheme } from '@/app/context/ThemeContext'
-
 export default function CardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [qrCode, setQrCode] = useState<string>('')
   const [loading, setLoading] = useState(true)
-  const [socket, setSocket] = useState<Socket | null>(null)
   const [isDevMode, setIsDevMode] = useState(false)
   const [isQROpen, setIsQROpen] = useState(false)
 
@@ -60,8 +57,8 @@ export default function CardPage() {
         }
         setLoading(false)
         return
-      } catch (error) {
-        console.log('Error parsing stored session data:', error)
+      } catch {
+        console.log('Error parsing stored session data')
       }
     }
 
@@ -120,8 +117,6 @@ export default function CardPage() {
         console.log('Loyalty update received:', data)
         setUserData((prev) => prev ? { ...prev, loyaltyCard: data } : null)
       })
-
-      setSocket(newSocket)
 
       return () => {
         newSocket.disconnect()
@@ -186,57 +181,43 @@ export default function CardPage() {
   const { loyaltyCard } = userData
 
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-950 overflow-hidden flex flex-col"
-    >
-      {/* Header */}
+    <div className="relative min-h-screen overflow-hidden bg-[var(--black)]">
+      <div className="absolute inset-0 dot-grid-subtle opacity-35" />
+      <div className="relative flex min-h-screen flex-col">
       <Header
         userName={userData.user.name}
         isDevMode={isDevMode}
         onSignOut={handleSignOut}
       />
 
-      {/* Main Content - Fullscreen centered */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8 bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-950">
-        <div className="w-full max-w-md">
-          <StampDisplay
-            current={loyaltyCard.stamps}
-            total={loyaltyCard.rewardThreshold}
-            hasReward={loyaltyCard.rewardAvailable}
-          />
-        </div>
-      </div>
-
-      {/* Bottom Action Button */}
-      <div className="px-6 py-8 border-t border-gray-200 dark:border-amber-900 bg-white dark:bg-gray-900">
-        <PrimaryButton onClick={() => setIsQROpen(true)}>
-          STAMP ME
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        <main className="flex-1 px-6 py-8">
+          <div className="mx-auto flex h-full w-full max-w-md items-center">
+            <StampDisplay
+              current={loyaltyCard.stamps}
+              total={loyaltyCard.rewardThreshold}
+              hasReward={loyaltyCard.rewardAvailable}
             />
-          </svg>
-        </PrimaryButton>
-        {isDevMode && (
-          <p className="text-xs text-center text-gray-400 dark:text-gray-500 mt-3">
-            Tap to show QR code for scanning
-          </p>
-        )}
-      </div>
+          </div>
+        </main>
 
-      {/* QR Modal */}
-      <QRModal
-        isOpen={isQROpen}
-        qrCode={qrCode}
-        onClose={() => setIsQROpen(false)}
-      />
+        <footer className="px-6 pb-6 pt-2">
+          <div className="surface-panel rounded-[16px] p-4">
+            <div className="mono-label mb-3 flex items-center justify-between">
+              <span>SESSION</span>
+              <span>{isDevMode ? 'DEV' : 'LIVE'}</span>
+            </div>
+            <PrimaryButton onClick={() => setIsQROpen(true)}>
+              SHOW CODE
+            </PrimaryButton>
+          </div>
+        </footer>
+
+        <QRModal
+          isOpen={isQROpen}
+          qrCode={qrCode}
+          onClose={() => setIsQROpen(false)}
+        />
+      </div>
     </div>
   )
 }

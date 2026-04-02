@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Html5QrcodeScanner } from 'html5-qrcode'
+import PrimaryButton from '@/app/components/PrimaryButton'
 
 interface LoyaltyCard {
   id: string
@@ -11,13 +12,10 @@ interface LoyaltyCard {
 }
 
 export default function StaffPage() {
-  const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null)
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null)
   const [scannedUserId, setScannedUserId] = useState<string>('')
   const [loyaltyCard, setLoyaltyCard] = useState<LoyaltyCard | null>(null)
-  const [message, setMessage] = useState<{
-    type: 'success' | 'error'
-    text: string
-  } | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
@@ -32,10 +30,11 @@ export default function StaffPage() {
     )
 
     qrScanner.render(onScanSuccess, onScanError)
-    setScanner(qrScanner)
+    scannerRef.current = qrScanner
 
     return () => {
       qrScanner.clear()
+      scannerRef.current = null
     }
   }, [])
 
@@ -45,7 +44,7 @@ export default function StaffPage() {
     await fetchLoyaltyCard(decodedText)
   }
 
-  const onScanError = (error: any) => {
+  const onScanError = () => {
     // Ignore scan errors (they happen frequently while scanning)
   }
 
@@ -64,7 +63,7 @@ export default function StaffPage() {
       const data = await response.json()
       setLoyaltyCard(data.loyaltyCard)
       setMessage(null)
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to load customer data' })
     }
   }
@@ -105,8 +104,11 @@ export default function StaffPage() {
           }),
         })
       }
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message })
+    } catch (error: unknown) {
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to add stamp',
+      })
     } finally {
       setIsProcessing(false)
     }
@@ -148,8 +150,11 @@ export default function StaffPage() {
           }),
         })
       }
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message })
+    } catch (error: unknown) {
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to redeem reward',
+      })
     } finally {
       setIsProcessing(false)
     }
@@ -161,113 +166,126 @@ export default function StaffPage() {
     setMessage(null)
   }
 
+  const renderSegments = (count: number, total: number, filledClass: string) =>
+    Array.from({ length: total }).map((_, index) => (
+      <div
+        key={index}
+        className={`segmented-progress__segment ${index < count ? filledClass : ''}`}
+        style={{ opacity: index < count ? 1 : 0.35 }}
+      />
+    ))
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-2xl mx-auto py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">👨‍💼</div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Staff Interface
-          </h1>
-          <p className="text-gray-600">
-            Scan customer QR codes to manage loyalty rewards
-          </p>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-[var(--black)] px-6 py-6">
+      <div className="absolute inset-0 dot-grid-subtle opacity-30" />
 
-        {/* QR Scanner */}
-        {!scannedUserId && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
-              Scan QR Code
-            </h2>
-            <div id="qr-reader" className="w-full"></div>
+      <div className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col">
+        <header className="flex items-end justify-between border-b border-[var(--border)] pb-4">
+          <div>
+            <div className="mono-label">STAFF TERMINAL</div>
+            <div className="mono-display mt-2 text-[clamp(32px,7vw,48px)] leading-none text-[var(--text-display)]">
+              SCAN
+            </div>
           </div>
-        )}
 
-        {/* Customer Info */}
-        {loyaltyCard && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">
-                Customer Loyalty Card
-              </h2>
-              <button
-                onClick={handleReset}
-                className="text-sm text-gray-600 hover:text-gray-800"
-              >
-                Scan Another
-              </button>
-            </div>
+          {scannedUserId && (
+            <button
+              onClick={handleReset}
+              className="mono-label rounded-full border border-[var(--border-visible)] px-3 py-2 text-[var(--text-primary)]"
+            >
+              CLEAR
+            </button>
+          )}
+        </header>
 
-            <div className="text-center mb-6">
-              <p className="text-4xl font-bold text-orange-500 mb-2">
-                {loyaltyCard.stamps} / {loyaltyCard.rewardThreshold}
+        <div className="mt-6 flex flex-1 flex-col gap-6">
+          {!scannedUserId && (
+            <section className="surface-panel rounded-[16px] p-5">
+              <div className="mono-label mb-4">QR SCANNER</div>
+              <div id="qr-reader" className="w-full" />
+              <p className="mono-label mt-4 text-[var(--text-disabled)]">
+                POINT CAMERA AT CODE
               </p>
-              <p className="text-gray-600">Stamps Collected</p>
-            </div>
+            </section>
+          )}
 
-            {/* Stamps Grid */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {Array.from({ length: loyaltyCard.rewardThreshold }).map(
-                (_, i) => (
-                  <div
-                    key={i}
-                    className={`aspect-square rounded-xl flex items-center justify-center text-2xl ${
-                      i < loyaltyCard.stamps
-                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
-                        : 'bg-gray-100 text-gray-300'
+          {loyaltyCard && (
+            <section className="surface-panel rounded-[16px] p-5">
+              <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
+                <div>
+                  <div className="mono-label">CUSTOMER CARD</div>
+                  <div className="mono-display mt-2 text-[clamp(40px,8vw,56px)] leading-none text-[var(--text-display)]">
+                    {loyaltyCard.stamps}
+                    <span className="align-top text-[0.34em] text-[var(--text-secondary)]"> / {loyaltyCard.rewardThreshold}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="mono-label">STATUS</div>
+                  <div className={`mono-value mt-2 text-sm ${loyaltyCard.rewardAvailable ? 'text-[var(--success)]' : 'text-[var(--text-primary)]'}`}>
+                    {loyaltyCard.rewardAvailable ? 'READY' : 'ACTIVE'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="mono-label mb-3 flex items-center justify-between">
+                  <span>PROGRESS</span>
+                  <span>{loyaltyCard.stamps}/{loyaltyCard.rewardThreshold}</span>
+                </div>
+                <div className="segmented-progress">
+                  {renderSegments(
+                    loyaltyCard.stamps,
+                    loyaltyCard.rewardThreshold,
+                    loyaltyCard.rewardAvailable ? 'is-success' : 'is-filled'
+                  )}
+                </div>
+              </div>
+
+              {loyaltyCard.rewardAvailable && (
+                <div className="surface-panel-soft mt-4 rounded-[16px] p-4">
+                  <p className="mono-label text-[var(--success)]">FREE COFFEE AVAILABLE</p>
+                  <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                    Redeem now or add a stamp first.
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-4 grid gap-3">
+                <PrimaryButton onClick={handleAddStamp}>
+                  {isProcessing ? 'PROCESSING' : 'ADD STAMP'}
+                </PrimaryButton>
+
+                <PrimaryButton
+                  onClick={handleRedeemReward}
+                  variant="secondary"
+                >
+                  {isProcessing ? 'PROCESSING' : 'REDEEM'}
+                </PrimaryButton>
+
+                <button
+                  onClick={handleReset}
+                  className="mono-label rounded-full border border-[var(--border-visible)] px-4 py-3 text-[var(--text-secondary)]"
+                >
+                  SCAN ANOTHER
+                </button>
+              </div>
+
+              {message && (
+                <div className="surface-panel-soft mt-4 rounded-[16px] px-4 py-3">
+                  <p
+                    className={`mono-label ${
+                      message.type === 'success'
+                        ? 'text-[var(--success)]'
+                        : 'text-[var(--accent)]'
                     }`}
                   >
-                    ☕
-                  </div>
-                )
+                    {message.type === 'success' ? '[ SAVED ]' : '[ ERROR ]'} {message.text}
+                  </p>
+                </div>
               )}
-            </div>
-
-            {/* Reward Status */}
-            {loyaltyCard.rewardAvailable && (
-              <div className="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center mb-6">
-                <div className="text-2xl mb-1">🎉</div>
-                <p className="font-bold text-green-800">
-                  Free Coffee Available!
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <button
-                onClick={handleAddStamp}
-                disabled={isProcessing}
-                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isProcessing ? 'Processing...' : 'Add Stamp ☕'}
-              </button>
-
-              <button
-                onClick={handleRedeemReward}
-                disabled={!loyaltyCard.rewardAvailable || isProcessing}
-                className="w-full bg-gradient-to-r from-green-400 to-emerald-500 text-white px-6 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isProcessing ? 'Processing...' : 'Redeem Free Coffee 🎁'}
-              </button>
-            </div>
-
-            {/* Message */}
-            {message && (
-              <div
-                className={`mt-4 p-4 rounded-xl text-center font-semibold ${
-                  message.type === 'success'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
-          </div>
-        )}
+            </section>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -2,21 +2,16 @@
 
 export default function LoadingScreen() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-gray-950">
-      {/* Animated logo */}
-      <div className="mb-8 animate-pulse">
-        <div className="text-6xl">☕</div>
-      </div>
-
-      {/* Skeleton text */}
-      <div className="space-y-3 text-center">
-        <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded-lg mx-auto animate-pulse" />
-        <div className="h-3 w-24 bg-gray-100 dark:bg-gray-700 rounded-lg mx-auto animate-pulse" />
-      </div>
-
-      {/* Spinner */}
-      <div className="mt-12">
-        <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-black dark:border-t-cyan-400 rounded-full animate-spin" />
+    <div className="dot-grid-subtle flex h-screen flex-col items-center justify-center bg-[var(--black)]">
+      <div className="surface-panel rounded-[16px] px-6 py-5 text-center">
+        <div className="mono-label text-[var(--text-secondary)]">[ LOADING ]</div>
+        <div className="mono-display mt-4 text-3xl text-[var(--text-display)]">COFFEE</div>
+        <div className="mt-5 flex items-center justify-center gap-2">
+          <span className="h-2 w-2 bg-[var(--text-display)]" />
+          <span className="h-2 w-2 bg-[var(--text-secondary)] opacity-60" />
+          <span className="h-2 w-2 bg-[var(--text-secondary)] opacity-30" />
+          <span className="h-2 w-2 bg-[var(--text-secondary)] opacity-60" />
+        </div>
       </div>
     </div>
   )
